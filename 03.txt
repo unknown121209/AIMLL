@@ -1,0 +1,186 @@
+PRACTICAL 03 — (a) Implement any one of the Uninformed search techniques. (b) Implement any one of the Informed search techniques, e.g. A-Star algorithm for 8 puzzle problem. (c) Implement any one of the Local Search techniques, e.g. Hill Climbing, Simulated Annealing, Genetic algorithm.
+======================================================================
+
+AIM
+To implement (a) Breadth First Search, (b) A* search for the 8-puzzle and (c) Hill Climbing.
+
+SHORT THEORY
+- Uninformed search uses no knowledge about the goal. BFS expands nodes level by level using a queue (FIFO); it is complete and gives the shortest path when all step costs are equal.
+- Informed search uses a heuristic h(n). A* picks the node with the lowest f(n) = g(n) + h(n), where g = cost so far and h = estimated cost to goal. With an admissible heuristic (never overestimates) A* is optimal.
+- 8-puzzle heuristic used: Manhattan distance = sum of horizontal + vertical distances of each tile from its goal position.
+- Local search keeps only the current state and moves to a better neighbour. Hill Climbing always moves to the best neighbour and stops when none is better.
+- Hill climbing problems: local maxima, plateau, ridges. Simulated annealing and genetic algorithms reduce these problems.
+
+PROGRAM / DATASET DETAILS
+(a) graph A..G, find path A to G.  (b) 8-puzzle with blank shown as _ ; goal state is 1 2 3 / 4 5 6 / 7 8 _ .  (c) maximise f(x) = -(x-5)^2 + 25.
+
+HOW TO RUN IN VS CODE
+Save the code as 03.py in VS Code and run:   python 03.py
+(No extra library is needed; output is printed in the terminal.)
+
+CODE (copy everything between the START and END lines)
+----- CODE START (save as 03.py) -----
+# Practical 03 - (a) Uninformed search: BFS
+#                (b) Informed search: A* for 8-puzzle
+#                (c) Local search: Hill Climbing
+from collections import deque
+import heapq
+import random
+
+# ---------------------------------------------------------
+# (a) BREADTH FIRST SEARCH (Uninformed)
+# ---------------------------------------------------------
+def bfs(graph, start, goal):
+    queue = deque([[start]])      # queue stores paths
+    visited = set([start])
+    order = []
+    while queue:
+        path = queue.popleft()
+        node = path[-1]
+        order.append(node)
+        if node == goal:
+            return path, order
+        for neighbour in graph[node]:
+            if neighbour not in visited:
+                visited.add(neighbour)
+                queue.append(path + [neighbour])
+    return None, order
+
+print("=== (a) Breadth First Search ===")
+graph = {
+    "A": ["B", "C"],
+    "B": ["D", "E"],
+    "C": ["F"],
+    "D": [],
+    "E": ["G"],
+    "F": ["G"],
+    "G": []
+}
+path, order = bfs(graph, "A", "G")
+print("Order of nodes visited:", order)
+print("Path from A to G      :", " -> ".join(path))
+
+# ---------------------------------------------------------
+# (b) A* ALGORITHM for 8-PUZZLE (Informed)
+#     f(n) = g(n) + h(n),  h = Manhattan distance
+# ---------------------------------------------------------
+GOAL = (1, 2, 3, 4, 5, 6, 7, 8, 0)      # 0 = blank
+
+def heuristic(state):
+    total = 0
+    for i, tile in enumerate(state):
+        if tile != 0:
+            goal_pos = GOAL.index(tile)
+            total += abs(i // 3 - goal_pos // 3) + abs(i % 3 - goal_pos % 3)
+    return total
+
+def neighbours(state):
+    result = []
+    b = state.index(0)
+    row, col = b // 3, b % 3
+    for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+        r, c = row + dr, col + dc
+        if 0 <= r < 3 and 0 <= c < 3:
+            new = list(state)
+            n = r * 3 + c
+            new[b], new[n] = new[n], new[b]
+            result.append(tuple(new))
+    return result
+
+def astar(start):
+    open_list = [(heuristic(start), 0, start, [start])]   # (f, g, state, path)
+    visited = set()
+    while open_list:
+        f, g, state, path = heapq.heappop(open_list)
+        if state == GOAL:
+            return path
+        if state in visited:
+            continue
+        visited.add(state)
+        for nxt in neighbours(state):
+            if nxt not in visited:
+                heapq.heappush(open_list, (g + 1 + heuristic(nxt), g + 1, nxt, path + [nxt]))
+    return None
+
+def print_state(state):
+    for i in range(0, 9, 3):
+        print(" ".join(str(x) if x != 0 else "_" for x in state[i:i + 3]))
+    print()
+
+print("\n=== (b) A* Search for 8-Puzzle ===")
+start = (1, 2, 3, 5, 0, 6, 4, 7, 8)
+solution = astar(start)
+print("Number of moves:", len(solution) - 1)
+for step, state in enumerate(solution):
+    print("Step", step, " (h =", heuristic(state), ")")
+    print_state(state)
+
+# ---------------------------------------------------------
+# (c) HILL CLIMBING (Local search)
+#     Maximise f(x) = -(x-5)^2 + 25   (best x = 5)
+# ---------------------------------------------------------
+def f(x):
+    return -(x - 5) ** 2 + 25
+
+print("=== (c) Hill Climbing ===")
+random.seed(1)
+x = random.randint(-10, 20)
+print("Start x =", x, " f(x) =", f(x))
+while True:
+    neighbours_x = [x - 1, x + 1]
+    best = max(neighbours_x, key=f)
+    if f(best) <= f(x):          # no better neighbour -> stop
+        break
+    x = best
+    print("Move to x =", x, " f(x) =", f(x))
+print("Maximum found at x =", x, " value =", f(x))
+----- CODE END -----
+
+EXPECTED OUTPUT
+----- OUTPUT START -----
+=== (a) Breadth First Search ===
+Order of nodes visited: ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+Path from A to G      : A -> B -> E -> G
+
+=== (b) A* Search for 8-Puzzle ===
+Number of moves: 4
+Step 0  (h = 4 )
+1 2 3
+5 _ 6
+4 7 8
+
+Step 1  (h = 3 )
+1 2 3
+_ 5 6
+4 7 8
+
+Step 2  (h = 2 )
+1 2 3
+4 5 6
+_ 7 8
+
+Step 3  (h = 1 )
+1 2 3
+4 5 6
+7 _ 8
+
+Step 4  (h = 0 )
+1 2 3
+4 5 6
+7 8 _
+
+=== (c) Hill Climbing ===
+Start x = -6  f(x) = -96
+Move to x = -5  f(x) = -75
+Move to x = -4  f(x) = -56
+Move to x = -3  f(x) = -39
+Move to x = -2  f(x) = -24
+Move to x = -1  f(x) = -11
+Move to x = 0  f(x) = 0
+Move to x = 1  f(x) = 9
+Move to x = 2  f(x) = 16
+Move to x = 3  f(x) = 21
+Move to x = 4  f(x) = 24
+Move to x = 5  f(x) = 25
+Maximum found at x = 5  value = 25
+----- OUTPUT END -----

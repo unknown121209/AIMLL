@@ -1,0 +1,130 @@
+PRACTICAL 06 — Study of Machine Learning Libraries and tools (Python library, tensorflow, keras,...)
+======================================================================
+
+AIM
+To study the main Python libraries and tools used in Machine Learning and to run a small example of each.
+
+SHORT THEORY
+Library      | Purpose                                              | Example use
+NumPy        | fast arrays and mathematical operations              | np.array, mean, matrix operations
+Pandas       | tables (DataFrame), reading CSV, cleaning data       | pd.DataFrame, describe(), groupby
+Matplotlib   | plots and charts                                     | scatter, line, histogram
+Seaborn      | attractive statistical plots on top of Matplotlib    | heatmap, boxplot
+SciPy        | scientific computing and statistical tests           | t-test, optimisation
+Scikit-learn | classical ML: regression, classification, clustering, PCA, model evaluation | LinearRegression, SVC, KMeans
+TensorFlow   | deep learning framework by Google (tensors, GPU support) | neural networks, training at scale
+Keras        | easy high-level API for building neural networks (part of TensorFlow) | Sequential, Dense layers
+PyTorch      | deep learning framework by Meta, popular in research | dynamic computation graphs
+Jupyter / VS Code | tools to write and run code interactively         | notebooks, editors
+Others: NLTK/spaCy (text), OpenCV (images), XGBoost (boosting), Google Colab (free cloud notebook).
+
+- Typical ML workflow: collect data -> clean (Pandas) -> explore (Matplotlib) -> build model (Scikit-learn / Keras) -> evaluate -> deploy.
+- Keras model building: Sequential() -> add layers -> compile(optimizer, loss) -> fit(data, epochs) -> predict().
+
+PROGRAM / DATASET DETAILS
+The program prints the version of each library and runs a tiny example of NumPy, Pandas, Matplotlib, Scikit-learn and TensorFlow/Keras (a one-neuron network learns y = 2x).
+
+HOW TO RUN IN VS CODE
+Install the libraries once in the VS Code terminal:
+      pip install numpy pandas matplotlib scikit-learn tensorflow
+(If TensorFlow cannot be installed, the program still runs and prints a message for that section.)
+Save the code as 06.py and run:   python 06.py
+A Matplotlib window appears; close it to let the program continue.
+
+CODE (copy everything between the START and END lines)
+----- CODE START (save as 06.py) -----
+# Practical 06 - Study of Machine Learning libraries and tools
+# Install once (terminal):  pip install numpy pandas matplotlib scikit-learn tensorflow
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import sklearn
+
+print("NumPy version        :", np.__version__)
+print("Pandas version       :", pd.__version__)
+print("Scikit-learn version :", sklearn.__version__)
+
+# ---------------- 1. NumPy : numerical arrays ----------------
+print("\n--- NumPy ---")
+a = np.array([1, 2, 3, 4, 5])
+print("Array      :", a)
+print("a * 2      :", a * 2)
+print("Mean, Std  :", a.mean(), round(a.std(), 3))
+
+# ---------------- 2. Pandas : data tables ----------------
+print("\n--- Pandas ---")
+df = pd.DataFrame({"Hours": [1, 2, 3, 4, 5], "Marks": [35, 45, 50, 62, 70]})
+print(df)
+print(df.describe().loc[["mean", "min", "max"]])
+
+# ---------------- 3. Matplotlib : plotting ----------------
+plt.scatter(df["Hours"], df["Marks"], color="blue")
+plt.title("Matplotlib: Hours vs Marks")
+plt.xlabel("Hours")
+plt.ylabel("Marks")
+plt.show()
+
+# ---------------- 4. Scikit-learn : classic ML ----------------
+print("\n--- Scikit-learn ---")
+from sklearn.linear_model import LinearRegression
+model = LinearRegression()
+model.fit(df[["Hours"]], df["Marks"])
+print("Slope     :", round(model.coef_[0], 2))
+print("Intercept :", round(model.intercept_, 2))
+print("Predicted marks for 6 hours:", round(model.predict(pd.DataFrame({"Hours": [6]}))[0], 2))
+
+# ---------------- 5. TensorFlow / Keras : deep learning ----------------
+print("\n--- TensorFlow / Keras ---")
+try:
+    import tensorflow as tf
+    from tensorflow import keras
+    print("TensorFlow version   :", tf.__version__)
+
+    X = np.array([1, 2, 3, 4, 5], dtype=float)
+    y = np.array([2, 4, 6, 8, 10], dtype=float)       # y = 2x
+
+    nn = keras.Sequential([
+        keras.layers.Input(shape=(1,)),
+        keras.layers.Dense(1)                         # one neuron
+    ])
+    nn.compile(optimizer="sgd", loss="mse")
+    nn.fit(X, y, epochs=300, verbose=0)
+    print("Neural network prediction for x = 6 (should be near 12):",
+          round(float(nn.predict(np.array([[6.0]]), verbose=0)[0][0]), 2))
+except ImportError:
+    print("TensorFlow is not installed. Install it with: pip install tensorflow")
+----- CODE END -----
+
+EXPECTED OUTPUT
+(Version numbers and the last prediction may differ slightly on your computer. A Matplotlib window also opens.)
+----- OUTPUT START -----
+NumPy version        : 2.4.4
+Pandas version       : 3.0.2
+Scikit-learn version : 1.8.0
+
+--- NumPy ---
+Array      : [1 2 3 4 5]
+a * 2      : [ 2  4  6  8 10]
+Mean, Std  : 3.0 1.414
+
+--- Pandas ---
+   Hours  Marks
+0      1     35
+1      2     45
+2      3     50
+3      4     62
+4      5     70
+      Hours  Marks
+mean    3.0   52.4
+min     1.0   35.0
+max     5.0   70.0
+
+--- Scikit-learn ---
+Slope     : 8.7
+Intercept : 26.3
+Predicted marks for 6 hours: 78.5
+
+--- TensorFlow / Keras ---
+TensorFlow version   : 2.21.0
+Neural network prediction for x = 6 (should be near 12): 11.81
+----- OUTPUT END -----

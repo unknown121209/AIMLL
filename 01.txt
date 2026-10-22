@@ -1,0 +1,151 @@
+PRACTICAL 01 — Provide the PEAS description and TASK Environment for a given AI problem.
+======================================================================
+
+AIM
+To describe an AI problem using the PEAS framework and to classify its task environment.
+
+SHORT THEORY
+- An agent is anything that perceives its environment through sensors and acts on it through actuators.
+- PEAS = Performance measure, Environment, Actuators, Sensors. It specifies the task the agent must solve.
+- Task environment properties:
+  Observable      : fully (sensors show complete state) / partially
+  Agents          : single agent / multi-agent
+  Deterministic   : next state fully decided by current state and action / stochastic
+  Episodic        : each action independent of the past / sequential (current action affects future)
+  Static          : environment does not change while agent thinks / dynamic
+  Discrete        : finite number of states and actions / continuous
+- Hardest case (real world): partially observable, multi-agent, stochastic, sequential, dynamic, continuous (e.g. taxi driving).
+
+PROGRAM / DATASET DETAILS
+Four AI problems are described: Automated Taxi, Vacuum Cleaner Robot, Medical Diagnosis System, Chess Player. To answer a different problem in the exam, copy one show_peas(...) call and change the values.
+
+HOW TO RUN IN VS CODE
+Output is printed in the terminal. No libraries needed.
+
+CODE (copy everything between the START and END lines)
+----- CODE START (save as 01.py) -----
+# Practical 01 - PEAS description and Task Environment
+
+def show_peas(name, performance, environment, actuators, sensors, task_env):
+    print("=" * 60)
+    print("PROBLEM:", name)
+    print("=" * 60)
+    print("P - Performance measure :", ", ".join(performance))
+    print("E - Environment         :", ", ".join(environment))
+    print("A - Actuators           :", ", ".join(actuators))
+    print("S - Sensors             :", ", ".join(sensors))
+    print("\nTask Environment properties:")
+    for prop, value in task_env.items():
+        print("  {:<14}: {}".format(prop, value))
+    print()
+
+
+show_peas(
+    "Automated Taxi (Self-driving car)",
+    ["safe trip", "fast trip", "legal driving", "comfort", "maximum profit"],
+    ["roads", "other traffic", "pedestrians", "customers"],
+    ["steering", "accelerator", "brake", "signal", "horn", "display"],
+    ["cameras", "radar/lidar", "speedometer", "GPS", "odometer", "engine sensors"],
+    {"Observable": "Partially observable", "Agents": "Multi-agent",
+     "Deterministic": "Stochastic", "Episodic": "Sequential",
+     "Static": "Dynamic", "Discrete": "Continuous"})
+
+show_peas(
+    "Vacuum Cleaner Robot",
+    ["cleanliness of floor", "less time", "less energy used"],
+    ["rooms", "dirt", "furniture"],
+    ["wheels", "brushes", "suction motor"],
+    ["dirt sensor", "bump sensor", "location sensor"],
+    {"Observable": "Partially observable", "Agents": "Single agent",
+     "Deterministic": "Deterministic", "Episodic": "Sequential",
+     "Static": "Static", "Discrete": "Discrete"})
+
+show_peas(
+    "Medical Diagnosis System",
+    ["healthy patient", "minimum cost", "correct diagnosis"],
+    ["patient", "hospital", "staff"],
+    ["display of questions", "tests", "diagnosis", "treatment"],
+    ["keyboard entry of symptoms", "patient answers", "lab reports"],
+    {"Observable": "Partially observable", "Agents": "Single agent",
+     "Deterministic": "Stochastic", "Episodic": "Sequential",
+     "Static": "Dynamic", "Discrete": "Continuous"})
+
+show_peas(
+    "Chess Player",
+    ["win the game", "fewer moves", "less time"],
+    ["chess board", "opponent", "clock"],
+    ["move pieces"],
+    ["board position", "opponent's move", "clock"],
+    {"Observable": "Fully observable", "Agents": "Multi-agent",
+     "Deterministic": "Deterministic", "Episodic": "Sequential",
+     "Static": "Semi-dynamic (clock)", "Discrete": "Discrete"})
+
+# To describe a new problem, copy one show_peas(...) call and change the values.
+----- CODE END -----
+
+EXPECTED OUTPUT
+----- OUTPUT START -----
+============================================================
+PROBLEM: Automated Taxi (Self-driving car)
+============================================================
+P - Performance measure : safe trip, fast trip, legal driving, comfort, maximum profit
+E - Environment         : roads, other traffic, pedestrians, customers
+A - Actuators           : steering, accelerator, brake, signal, horn, display
+S - Sensors             : cameras, radar/lidar, speedometer, GPS, odometer, engine sensors
+
+Task Environment properties:
+  Observable    : Partially observable
+  Agents        : Multi-agent
+  Deterministic : Stochastic
+  Episodic      : Sequential
+  Static        : Dynamic
+  Discrete      : Continuous
+
+============================================================
+PROBLEM: Vacuum Cleaner Robot
+============================================================
+P - Performance measure : cleanliness of floor, less time, less energy used
+E - Environment         : rooms, dirt, furniture
+A - Actuators           : wheels, brushes, suction motor
+S - Sensors             : dirt sensor, bump sensor, location sensor
+
+Task Environment properties:
+  Observable    : Partially observable
+  Agents        : Single agent
+  Deterministic : Deterministic
+  Episodic      : Sequential
+  Static        : Static
+  Discrete      : Discrete
+
+============================================================
+PROBLEM: Medical Diagnosis System
+============================================================
+P - Performance measure : healthy patient, minimum cost, correct diagnosis
+E - Environment         : patient, hospital, staff
+A - Actuators           : display of questions, tests, diagnosis, treatment
+S - Sensors             : keyboard entry of symptoms, patient answers, lab reports
+
+Task Environment properties:
+  Observable    : Partially observable
+  Agents        : Single agent
+  Deterministic : Stochastic
+  Episodic      : Sequential
+  Static        : Dynamic
+  Discrete      : Continuous
+
+============================================================
+PROBLEM: Chess Player
+============================================================
+P - Performance measure : win the game, fewer moves, less time
+E - Environment         : chess board, opponent, clock
+A - Actuators           : move pieces
+S - Sensors             : board position, opponent's move, clock
+
+Task Environment properties:
+  Observable    : Fully observable
+  Agents        : Multi-agent
+  Deterministic : Deterministic
+  Episodic      : Sequential
+  Static        : Semi-dynamic (clock)
+  Discrete      : Discrete
+----- OUTPUT END -----

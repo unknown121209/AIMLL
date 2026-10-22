@@ -1,0 +1,111 @@
+PRACTICAL 05 — Create a Bayesian Network for the given Problem Statement and draw inferences from it. (You can use any Belief and Decision Networks Tool for modeling Bayesian Networks)
+======================================================================
+
+AIM
+To build a Bayesian Network for the burglary-alarm problem and draw inferences (conditional probabilities) from it.
+
+SHORT THEORY
+- A Bayesian Network is a directed acyclic graph (DAG) in which nodes are random variables and arrows show direct influence. Each node has a Conditional Probability Table (CPT).
+- It gives the full joint probability as a product:  P(B,E,A,J,M) = P(B) * P(E) * P(A|B,E) * P(J|A) * P(M|A).
+- Inference by enumeration: P(X | evidence) = (sum of joint probabilities consistent with X and evidence) / (sum of joint probabilities consistent with evidence).
+- Types of reasoning: diagnostic (effect -> cause), causal (cause -> effect), intercausal (explaining away).
+- Tools such as GeNIe, Hugin, Netica or the Python library pgmpy can model the same network; here the network is coded in plain Python so that no installation is needed.
+
+Network diagram:
+
+    Burglary (B)      Earthquake (E)
+           \            /
+            v          v
+             Alarm (A)
+            /          \
+           v            v
+    JohnCalls (J)    MaryCalls (M)
+
+PROGRAM / DATASET DETAILS
+Problem: A house alarm is triggered by a Burglary or an Earthquake. When the alarm rings, neighbours John and Mary may phone the owner. 
+CPT values: P(B)=0.001, P(E)=0.002; P(A|B,E)= 0.95 / 0.94 / 0.29 / 0.001; P(J|A)= 0.90 (alarm) or 0.05 (no alarm); P(M|A)= 0.70 or 0.01.
+
+HOW TO RUN IN VS CODE
+Save the code as 05.py in VS Code and run:   python 05.py
+(No library needed - the network is implemented in plain Python.)
+
+CODE (copy everything between the START and END lines)
+----- CODE START (save as 05.py) -----
+# Practical 05 - Bayesian Network and inference (pure Python, no library)
+#
+# Problem (classic Alarm network):
+#   A house alarm can be set off by a Burglary or an Earthquake.
+#   If the alarm rings, neighbours John and Mary may call.
+#
+#   Burglary (B)     Earthquake (E)
+#         \           /
+#          \         /
+#            Alarm (A)
+#           /       \
+#   JohnCalls (J)   MaryCalls (M)
+import itertools
+
+# ---- Conditional Probability Tables (CPTs) ----
+P_B = 0.001                      # P(Burglary = True)
+P_E = 0.002                      # P(Earthquake = True)
+P_A = {(True, True): 0.95,       # P(Alarm = True | B, E)
+       (True, False): 0.94,
+       (False, True): 0.29,
+       (False, False): 0.001}
+P_J = {True: 0.90, False: 0.05}  # P(JohnCalls = True | Alarm)
+P_M = {True: 0.70, False: 0.01}  # P(MaryCalls = True | Alarm)
+
+def prob(p_true, value):
+    return p_true if value else 1 - p_true
+
+# Joint probability = P(B) * P(E) * P(A|B,E) * P(J|A) * P(M|A)
+def joint(b, e, a, j, m):
+    return (prob(P_B, b) * prob(P_E, e) * prob(P_A[(b, e)], a)
+            * prob(P_J[a], j) * prob(P_M[a], m))
+
+# Inference by enumeration: P(target = True | evidence)
+names = ["B", "E", "A", "J", "M"]
+
+def query(target, evidence):
+    num, den = 0.0, 0.0
+    for values in itertools.product([True, False], repeat=5):
+        world = dict(zip(names, values))
+        if any(world[k] != v for k, v in evidence.items()):
+            continue                       # ignore worlds that contradict evidence
+        p = joint(*values)
+        den += p
+        if world[target]:
+            num += p
+    return num / den
+
+print("Bayesian Network: Burglary, Earthquake -> Alarm -> JohnCalls, MaryCalls\n")
+
+print("P(Burglary)                                  = {:.4f}".format(query("B", {})))
+print("P(Alarm)                                     = {:.4f}".format(query("A", {})))
+print("P(Burglary | JohnCalls=T)                    = {:.4f}".format(query("B", {"J": True})))
+print("P(Burglary | JohnCalls=T, MaryCalls=T)       = {:.4f}".format(query("B", {"J": True, "M": True})))
+print("P(Alarm    | JohnCalls=T, MaryCalls=T)       = {:.4f}".format(query("A", {"J": True, "M": True})))
+print("P(Earthquake | JohnCalls=T, MaryCalls=T)     = {:.4f}".format(query("E", {"J": True, "M": True})))
+print("P(Burglary | Alarm=T)                        = {:.4f}".format(query("B", {"A": True})))
+print("P(Burglary | Alarm=T, Earthquake=T)          = {:.4f}".format(query("B", {"A": True, "E": True})))
+
+print("\nInference: even when both neighbours call, burglary is still unlikely")
+print("because the prior probability of a burglary is very small.")
+----- CODE END -----
+
+EXPECTED OUTPUT
+----- OUTPUT START -----
+Bayesian Network: Burglary, Earthquake -> Alarm -> JohnCalls, MaryCalls
+
+P(Burglary)                                  = 0.0010
+P(Alarm)                                     = 0.0025
+P(Burglary | JohnCalls=T)                    = 0.0163
+P(Burglary | JohnCalls=T, MaryCalls=T)       = 0.2842
+P(Alarm    | JohnCalls=T, MaryCalls=T)       = 0.7607
+P(Earthquake | JohnCalls=T, MaryCalls=T)     = 0.1761
+P(Burglary | Alarm=T)                        = 0.3736
+P(Burglary | Alarm=T, Earthquake=T)          = 0.0033
+
+Inference: even when both neighbours call, burglary is still unlikely
+because the prior probability of a burglary is very small.
+----- OUTPUT END -----

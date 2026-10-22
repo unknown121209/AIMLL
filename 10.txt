@@ -1,0 +1,93 @@
+PRACTICAL 10 — Implementation of Support Vector Machines for a given example data set.
+======================================================================
+
+AIM
+To classify Iris flowers using a Support Vector Machine (SVM) and compare different kernels.
+
+SHORT THEORY
+- SVM is a supervised algorithm that finds the hyperplane that separates classes with the maximum margin (distance to the nearest points).
+- Support vectors are the data points closest to the boundary; only they define the hyperplane.
+- Kernel trick: maps data to a higher dimension so non-linear data becomes separable. Kernels: linear, polynomial (poly), RBF.
+- C parameter: small C = wider margin, more errors allowed; large C = narrow margin, fewer errors (risk of overfitting).
+- Features must be scaled before using SVM.
+
+PROGRAM / DATASET DETAILS
+Iris dataset (built into scikit-learn). The linear, RBF and polynomial kernels are compared, and a decision boundary is drawn using two features (petal length and width).
+
+HOW TO RUN IN VS CODE
+Install:   pip install numpy matplotlib scikit-learn
+Save the code as 10.py and run:   python 10.py
+A plot of the SVM decision regions opens in a window at the end.
+
+CODE (copy everything between the START and END lines)
+----- CODE START (save as 10.py) -----
+# Practical 10 - Support Vector Machine (SVM)
+# Dataset: Iris (built into scikit-learn, no download needed)
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score, confusion_matrix
+
+# 1. Load data
+iris = load_iris()
+X = iris.data
+y = iris.target
+
+# 2. Split and scale (SVM works best with scaled data)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=42, stratify=y)
+scaler = StandardScaler()
+X_train_s = scaler.fit_transform(X_train)
+X_test_s = scaler.transform(X_test)
+
+# 3. Train SVM with different kernels and compare
+for kernel in ["linear", "rbf", "poly"]:
+    svm = SVC(kernel=kernel)
+    svm.fit(X_train_s, y_train)
+    acc = accuracy_score(y_test, svm.predict(X_test_s))
+    print("Kernel = {:<6} -> Accuracy = {:.4f}".format(kernel, acc))
+
+# 4. Detailed result for the RBF kernel
+svm = SVC(kernel="rbf", C=1.0)
+svm.fit(X_train_s, y_train)
+y_pred = svm.predict(X_test_s)
+print("\nRBF kernel accuracy:", round(accuracy_score(y_test, y_pred), 4))
+print("Confusion Matrix:")
+print(confusion_matrix(y_test, y_pred))
+print("Number of support vectors per class:", svm.n_support_)
+
+# 5. Decision boundary using 2 features (petal length and petal width)
+X2 = X[:, 2:4]
+X2_s = StandardScaler().fit_transform(X2)
+svm2 = SVC(kernel="linear")
+svm2.fit(X2_s, y)
+
+xx, yy = np.meshgrid(np.linspace(X2_s[:, 0].min() - 1, X2_s[:, 0].max() + 1, 200),
+                     np.linspace(X2_s[:, 1].min() - 1, X2_s[:, 1].max() + 1, 200))
+Z = svm2.predict(np.c_[xx.ravel(), yy.ravel()]).reshape(xx.shape)
+
+plt.contourf(xx, yy, Z, alpha=0.3, cmap="coolwarm")
+plt.scatter(X2_s[:, 0], X2_s[:, 1], c=y, edgecolor="black", cmap="coolwarm")
+plt.xlabel("Petal length (scaled)")
+plt.ylabel("Petal width (scaled)")
+plt.title("SVM Decision Boundary (linear kernel)")
+plt.show()
+----- CODE END -----
+
+EXPECTED OUTPUT
+(A graph window also opens when you run the program.)
+----- OUTPUT START -----
+Kernel = linear -> Accuracy = 0.9111
+Kernel = rbf    -> Accuracy = 0.9333
+Kernel = poly   -> Accuracy = 0.8667
+
+RBF kernel accuracy: 0.9333
+Confusion Matrix:
+[[15  0  0]
+ [ 0 14  1]
+ [ 0  2 13]]
+Number of support vectors per class: [ 6 18 16]
+----- OUTPUT END -----

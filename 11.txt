@@ -1,0 +1,126 @@
+PRACTICAL 11 — Design a prototype of an expert system
+======================================================================
+
+AIM
+To design a prototype of a rule-based expert system for medical diagnosis.
+
+SHORT THEORY
+- An expert system is an AI program that imitates the decision making of a human expert in a particular domain.
+- Components: (1) Knowledge Base - facts and IF-THEN rules; (2) Inference Engine - applies rules to the facts to reach conclusions; (3) User Interface - asks questions and shows results. (Also: explanation facility, knowledge acquisition.)
+- Forward chaining (used here): start from known facts and keep firing rules until no new facts can be added (data-driven). Backward chaining starts from a goal and works backwards (goal-driven, used in Prolog).
+- Examples: MYCIN (medical), DENDRAL (chemistry), XCON (computer configuration).
+- Advantages: consistent, available any time, keeps expert knowledge. Limitations: no common sense, needs manual rule writing, limited to its domain.
+
+PROGRAM / DATASET DETAILS
+Domain: diagnosis of flu, common cold, COVID-like illness and migraine from 10 yes/no symptom questions. Rules are in the list 'rules'; to extend the system just add more rules and questions.
+
+HOW TO RUN IN VS CODE
+Save the code as 11.py and run in the VS Code terminal:   python 11.py
+Type yes or no for each question (this program needs keyboard input, so run it in the terminal).
+
+CODE (copy everything between the START and END lines)
+----- CODE START (save as 11.py) -----
+# Practical 11 - Prototype of an Expert System (Medical Diagnosis)
+#
+# Parts of an expert system:
+#   1. Knowledge Base   -> IF-THEN rules (below)
+#   2. Inference Engine -> forward chaining (function infer)
+#   3. User Interface   -> asks yes/no questions and shows the result
+
+# ---------------- 1. KNOWLEDGE BASE ----------------
+# Each rule: (set of conditions, conclusion)
+rules = [
+    ({"fever", "cough", "body_ache"},            "flu"),
+    ({"sneezing", "runny_nose", "sore_throat"},  "common_cold"),
+    ({"fever", "cough", "loss_of_smell"},        "covid_like_illness"),
+    ({"headache", "nausea", "light_sensitivity"}, "migraine"),
+    # second-level rules (use conclusions of earlier rules)
+    ({"flu"},                "advice: take rest, drink fluids and consult a doctor if fever persists"),
+    ({"common_cold"},        "advice: take rest, warm fluids and steam inhalation"),
+    ({"covid_like_illness"}, "advice: isolate yourself and get a COVID test done"),
+    ({"migraine"},           "advice: rest in a dark, quiet room and take prescribed medicine"),
+]
+
+questions = {
+    "fever":             "Do you have fever?",
+    "cough":             "Do you have cough?",
+    "body_ache":         "Do you have body ache?",
+    "sneezing":          "Do you have sneezing?",
+    "runny_nose":        "Do you have a runny nose?",
+    "sore_throat":       "Do you have a sore throat?",
+    "loss_of_smell":     "Have you lost your sense of smell?",
+    "headache":          "Do you have a severe headache?",
+    "nausea":            "Do you feel nausea?",
+    "light_sensitivity": "Are you sensitive to light?",
+}
+
+# ---------------- 2. INFERENCE ENGINE (forward chaining) ----------------
+def infer(facts):
+    facts = set(facts)
+    changed = True
+    while changed:                          # repeat until no new fact is added
+        changed = False
+        for conditions, conclusion in rules:
+            if conditions.issubset(facts) and conclusion not in facts:
+                facts.add(conclusion)
+                print("Rule fired: IF", sorted(conditions), "THEN", conclusion)
+                changed = True
+    return facts
+
+# ---------------- 3. USER INTERFACE ----------------
+print("=== MEDICAL DIAGNOSIS EXPERT SYSTEM ===")
+print("Answer with yes or no.\n")
+
+known_facts = set()
+for symptom, question in questions.items():
+    answer = input(question + " (yes/no): ").strip().lower()
+    if answer in ("yes", "y"):
+        known_facts.add(symptom)
+
+print("\nSymptoms entered:", sorted(known_facts))
+print("\n--- Reasoning ---")
+all_facts = infer(known_facts)
+
+print("\n--- Result ---")
+diseases = {"flu", "common_cold", "covid_like_illness", "migraine"}
+found = all_facts & diseases
+if found:
+    for d in found:
+        print("Possible diagnosis:", d.replace("_", " ").upper())
+    for fact in all_facts:
+        if fact.startswith("advice"):
+            print(fact)
+else:
+    print("No diagnosis could be made from the given symptoms. Please consult a doctor.")
+print("\n(This is only a prototype and not a real medical advice.)")
+----- CODE END -----
+
+EXPECTED OUTPUT
+(This is a SAMPLE SESSION. The answers yes, yes, yes, no, no, no, no, no, no, no were typed by the user.)
+----- OUTPUT START -----
+=== MEDICAL DIAGNOSIS EXPERT SYSTEM ===
+Answer with yes or no.
+
+Do you have fever? (yes/no): yes
+Do you have cough? (yes/no): yes
+Do you have body ache? (yes/no): yes
+Do you have sneezing? (yes/no): no
+Do you have a runny nose? (yes/no): no
+Do you have a sore throat? (yes/no): no
+Have you lost your sense of smell? (yes/no): no
+Do you have a severe headache? (yes/no): no
+Do you feel nausea? (yes/no): no
+Are you sensitive to light? (yes/no): no
+
+Symptoms entered: ['body_ache', 'cough', 'fever']
+
+--- Reasoning ---
+Rule fired: IF ['body_ache', 'cough', 'fever'] THEN flu
+Rule fired: IF ['flu'] THEN advice: take rest, drink fluids and consult a doctor if fever persists
+
+--- Result ---
+Possible diagnosis: FLU
+advice: take rest, drink fluids and consult a doctor if fever persists
+
+(This is only a prototype and not a real medical advice.)
+----- OUTPUT END -----

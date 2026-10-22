@@ -1,0 +1,97 @@
+PRACTICAL 04 — Implement adversarial search using min-max algorithm.
+======================================================================
+
+AIM
+To implement the Min-Max algorithm (with Alpha-Beta pruning as a bonus) on a game tree.
+
+SHORT THEORY
+- Adversarial search is used in two-player games (chess, tic-tac-toe) where players have opposite goals.
+- MAX tries to maximise the score, MIN tries to minimise it. Both play optimally.
+- Min-Max: leaf values come from a utility function; MAX nodes take the maximum of children, MIN nodes take the minimum; values are passed up to the root (depth-first, recursive).
+- Time complexity O(b^d) (b = branching factor, d = depth).
+- Alpha-Beta pruning gives the same answer but skips branches that cannot affect the result (alpha = best value for MAX so far, beta = best value for MIN so far; prune when alpha >= beta).
+
+PROGRAM / DATASET DETAILS
+Game tree of depth 3 with 8 leaf values stored as a nested list. Root = MAX, next level = MIN, next = MAX.
+
+HOW TO RUN IN VS CODE
+Save the code as 04.py in VS Code and run:   python 04.py
+(No extra library is needed; output is printed in the terminal.)
+
+CODE (copy everything between the START and END lines)
+----- CODE START (save as 04.py) -----
+# Practical 04 - Adversarial search using Min-Max algorithm
+# Game tree is a nested list. Numbers are leaf (terminal) values.
+# Level 0: MAX, Level 1: MIN, Level 2: MAX, Level 3: leaves
+
+tree = [
+    [[3, 5], [2, 9]],       # left subtree
+    [[12, 5], [23, 23]]     # right subtree
+]
+
+def minimax(node, is_max):
+    if not isinstance(node, list):      # leaf node -> return its value
+        return node
+    values = [minimax(child, not is_max) for child in node]
+    return max(values) if is_max else min(values)
+
+# Value of each child of the root (MIN player's turn below root)
+print("Game tree:", tree)
+print()
+for i, child in enumerate(tree):
+    print("Root move", i + 1, "-> value =", minimax(child, False))
+
+best_value = minimax(tree, True)
+print("\nOptimal value for MAX at root =", best_value)
+
+# Show how the value is calculated step by step
+print("\nStep by step:")
+print("MAX level (bottom): max(3,5)=5, max(2,9)=9, max(12,5)=12, max(23,23)=23")
+print("MIN level         : min(5,9)=5, min(12,23)=12")
+print("MAX level (root)  : max(5,12)=12")
+
+# BONUS: same tree with Alpha-Beta pruning (fewer nodes visited)
+count = 0
+def alphabeta(node, is_max, alpha, beta):
+    global count
+    if not isinstance(node, list):
+        count += 1
+        return node
+    if is_max:
+        value = -999
+        for child in node:
+            value = max(value, alphabeta(child, False, alpha, beta))
+            alpha = max(alpha, value)
+            if alpha >= beta:
+                break               # prune
+        return value
+    else:
+        value = 999
+        for child in node:
+            value = min(value, alphabeta(child, True, alpha, beta))
+            beta = min(beta, value)
+            if alpha >= beta:
+                break               # prune
+        return value
+
+print("\nAlpha-Beta result =", alphabeta(tree, True, -999, 999))
+print("Leaf nodes examined with pruning =", count, "out of 8")
+----- CODE END -----
+
+EXPECTED OUTPUT
+----- OUTPUT START -----
+Game tree: [[[3, 5], [2, 9]], [[12, 5], [23, 23]]]
+
+Root move 1 -> value = 5
+Root move 2 -> value = 12
+
+Optimal value for MAX at root = 12
+
+Step by step:
+MAX level (bottom): max(3,5)=5, max(2,9)=9, max(12,5)=12, max(23,23)=23
+MIN level         : min(5,9)=5, min(12,23)=12
+MAX level (root)  : max(5,12)=12
+
+Alpha-Beta result = 12
+Leaf nodes examined with pruning = 7 out of 8
+----- OUTPUT END -----

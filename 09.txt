@@ -1,0 +1,105 @@
+PRACTICAL 09 — Implementation of Linear Regression for a given example data set.
+======================================================================
+
+AIM
+To predict salary from years of experience using Simple Linear Regression.
+
+SHORT THEORY
+- Linear regression models the relationship between an independent variable X and a dependent variable Y by the line  Y = m*X + c  (m = slope, c = intercept).
+- The best line is found by the least squares method (minimise the sum of squared errors).
+- Evaluation metrics: MAE (mean absolute error), MSE (mean squared error), RMSE (square root of MSE), R-squared (fraction of variance explained, closer to 1 is better).
+- Used for prediction of continuous values (price, salary, marks).
+
+PROGRAM / DATASET DETAILS
+12 employees: Experience (years) = X, Salary (in thousands) = Y. Split 80% training / 20% testing.
+
+HOW TO RUN IN VS CODE
+Install:   pip install numpy pandas matplotlib scikit-learn
+Save the code as 09.py and run:   python 09.py
+A scatter plot with the red regression line opens in a window at the end.
+
+CODE (copy everything between the START and END lines)
+----- CODE START (save as 09.py) -----
+# Practical 09 - Linear Regression
+# Dataset: Years of Experience (X) vs Salary in thousands (Y)
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+
+# 1. Dataset
+data = {
+    "Experience": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+    "Salary":     [30, 35, 41, 44, 50, 56, 59, 65, 70, 74, 80, 85]
+}
+df = pd.DataFrame(data)
+print(df)
+
+X = df[["Experience"]]      # independent variable
+y = df["Salary"]            # dependent variable
+
+# 2. Split data (80% train, 20% test)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 3. Train the model
+model = LinearRegression()
+model.fit(X_train, y_train)
+print("\nSlope (m)     :", round(model.coef_[0], 3))
+print("Intercept (c) :", round(model.intercept_, 3))
+print("Equation      : Salary = {:.2f} * Experience + {:.2f}".format(model.coef_[0], model.intercept_))
+
+# 4. Predict on test data and evaluate
+y_pred = model.predict(X_test)
+print("\nActual    :", y_test.values)
+print("Predicted :", y_pred.round(2))
+print("MAE  :", round(mean_absolute_error(y_test, y_pred), 3))
+print("MSE  :", round(mean_squared_error(y_test, y_pred), 3))
+print("RMSE :", round(np.sqrt(mean_squared_error(y_test, y_pred)), 3))
+print("R2   :", round(r2_score(y_test, y_pred), 4))
+
+# 5. Predict for new values
+new = pd.DataFrame({"Experience": [13, 15]})
+print("\nPredicted salary for 13 and 15 years:", model.predict(new).round(2))
+
+# 6. Plot
+plt.scatter(X, y, color="blue", label="Actual data")
+plt.plot(X, model.predict(X), color="red", label="Regression line")
+plt.xlabel("Experience (years)")
+plt.ylabel("Salary (thousands)")
+plt.title("Linear Regression")
+plt.legend()
+plt.show()
+----- CODE END -----
+
+EXPECTED OUTPUT
+(A graph window also opens when you run the program.)
+----- OUTPUT START -----
+    Experience  Salary
+0            1      30
+1            2      35
+2            3      41
+3            4      44
+4            5      50
+5            6      56
+6            7      59
+7            8      65
+8            9      70
+9           10      74
+10          11      80
+11          12      85
+
+Slope (m)     : 4.975
+Intercept (c) : 25.156
+Equation      : Salary = 4.97 * Experience + 25.16
+
+Actual    : [80 74 30]
+Predicted : [79.88 74.91 30.13]
+MAE  : 0.385
+MSE  : 0.284
+RMSE : 0.533
+R2   : 0.9994
+
+Predicted salary for 13 and 15 years: [89.83 99.78]
+----- OUTPUT END -----
